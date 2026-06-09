@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project name="sae-application" default="compile" basedir=".">
-    
+
     <property name="src.dir" value="src"/>
     <property name="build.dir" value="build"/>
     <property name="classes.dir" value="${build.dir}/classes"/>
@@ -9,12 +9,13 @@
 
     <path id="project.classpath">
         <fileset dir="${lib.dir}">
-            <include name="**/*.jar"/>
+            <include name="*.jar"/>
         </fileset>
     </path>
 
     <target name="clean">
         <delete dir="${build.dir}"/>
+        <delete dir="out"/>
     </target>
 
     <target name="compile" depends="clean">
@@ -24,25 +25,11 @@
         </javac>
     </target>
 
-    <target name="jar" depends="compile">
-        <mkdir dir="${build.dir}/jar"/>
-        <jar destfile="${build.dir}/jar/proxy-server.jar" basedir="${classes.dir}">
-            <manifest>
-                <attribute name="Main-Class" value="com.example.proxy.ProxyServer"/>
-                <attribute name="Class-Path" value="../lib/json-20131018.jar"/>
-            </manifest>
-        </jar>
-        <jar destfile="${build.dir}/jar/restaurant-server.jar" basedir="${classes.dir}">
-            <manifest>
-                <attribute name="Main-Class" value="com.example.server.RestaurantServer"/>
-                <attribute name="Class-Path" value="../lib/json-20131018.jar"/>
-            </manifest>
-        </jar>
-        <jar destfile="${build.dir}/jar/restaurant-client.jar" basedir="${classes.dir}">
-            <manifest>
-                <attribute name="Main-Class" value="com.example.client.RestaurantClient"/>
-                <attribute name="Class-Path" value="../lib/json-20131018.jar"/>
-            </manifest>
-        </jar>
+    <target name="javadoc" depends="compile">
+        <mkdir dir="${build.dir}/javadoc"/>
+        <javadoc sourcepath="${src.dir}" destdir="${build.dir}/javadoc">
+            <classpath refid="project.classpath"/>
+        </javadoc>
     </target>
+
 </project>
