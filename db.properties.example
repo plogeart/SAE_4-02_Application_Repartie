@@ -1,0 +1,4 @@
+db.driver=oracle.jdbc.OracleDriver
+db.url=jdbc:oracle:thin:@charlemagne.iutnc.univ-lorraine.fr:1521:infodb
+db.user=TON_LOGIN
+db.password=TON_MDP
