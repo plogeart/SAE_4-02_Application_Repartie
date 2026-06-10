@@ -1,3 +1,4 @@
+# Copier ce fichier en db.properties puis remplacer le login et le mot de passe.
 db.driver=oracle.jdbc.OracleDriver
 db.url=jdbc:oracle:thin:@charlemagne.iutnc.univ-lorraine.fr:1521:infodb
 db.user=TON_LOGIN

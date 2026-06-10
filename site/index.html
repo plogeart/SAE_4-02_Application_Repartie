@@ -2,37 +2,100 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Application répartie</title>
+    <title>SAE Application Repartie - Nancy</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css">
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+
     <style>
-        body, html {
-            height: 100%;
+        body {
             margin: 0;
-            padding: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
         }
+
+        header {
+            background: #222;
+            color: white;
+            padding: 15px;
+        }
+
+        nav a {
+            color: white;
+            margin-right: 15px;
+        }
+
+        main {
+            padding: 15px;
+        }
+
+        section {
+            background: white;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+        }
+
         #map {
+            height: 600px;
             width: 100%;
-            height: 80vh;
         }
-        #legend {
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
             padding: 6px;
-            background: #fff;
-            line-height: 1.4;
+        }
+
+        th {
+            background: #eee;
+        }
+
+        button {
+            padding: 6px 10px;
+            cursor: pointer;
+        }
+
+        .error {
+            color: red;
         }
     </style>
 </head>
 <body>
-<h1>Carte des services</h1>
-<div id="map"></div>
-<div id="legend">
-    <strong>Légende :</strong>
-    <span style="color: blue;">●</span> Restaurants
-    &nbsp;&nbsp;
-    <span style="color: green;">●</span> Stations vélo
-    &nbsp;&nbsp;
-    <span style="color: red;">●</span> Incidents
-</div>
-<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+<header>
+    <h1>SAE Application Repartie - Nancy</h1>
+    <nav>
+        <a href="index.html">Carte</a>
+        <a href="compte-rendu.html">Compte rendu</a>
+    </nav>
+</header>
+
+<main>
+    <section>
+        <h2>Carte Leaflet</h2>
+        <p>Bleu : restaurants | Vert : stations velo | Rouge : incidents/travaux</p>
+        <div id="map"></div>
+    </section>
+
+    <section>
+        <h2>Tables</h2>
+        <button onclick="loadTables()">Rafraichir</button>
+        <div id="tables-container"></div>
+    </section>
+
+    <section>
+        <h2>Reservations</h2>
+        <button onclick="loadReservations()">Rafraichir</button>
+        <div id="reservations-container"></div>
+    </section>
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/config.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>

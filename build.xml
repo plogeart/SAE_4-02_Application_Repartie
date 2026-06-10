@@ -1,13 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
-<project name="sae-application" default="compile" basedir=".">
+<project name="sae-final-debutant" default="compile" basedir=".">
 
     <property name="src.dir" value="src"/>
     <property name="build.dir" value="build"/>
-    <property name="classes.dir" value="${build.dir}/classes"/>
+    <property name="classes.dir" value="build/classes"/>
     <property name="lib.dir" value="lib"/>
 
-    <path id="project.classpath">
+    <path id="classpath">
         <fileset dir="${lib.dir}">
             <include name="*.jar"/>
         </fileset>
@@ -15,21 +14,13 @@
 
     <target name="clean">
         <delete dir="${build.dir}"/>
-        <delete dir="out"/>
     </target>
 
-    <target name="compile" depends="clean">
+    <target name="compile">
         <mkdir dir="${classes.dir}"/>
-        <javac srcdir="${src.dir}" destdir="${classes.dir}" includeantruntime="false">
-            <classpath refid="project.classpath"/>
+        <javac srcdir="${src.dir}" destdir="${classes.dir}" includeantruntime="false" encoding="UTF-8">
+            <classpath refid="classpath"/>
         </javac>
-    </target>
-
-    <target name="javadoc" depends="compile">
-        <mkdir dir="${build.dir}/javadoc"/>
-        <javadoc sourcepath="${src.dir}" destdir="${build.dir}/javadoc">
-            <classpath refid="project.classpath"/>
-        </javadoc>
     </target>
 
 </project>
