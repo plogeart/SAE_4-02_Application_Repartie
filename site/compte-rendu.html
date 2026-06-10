@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Compte rendu</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 30px; }
+        pre { background: #eee; padding: 10px; }
+    </style>
+</head>
+<body>
+<h1>Compte rendu - SAE Application Repartie</h1>
+
+<h2>Architecture</h2>
+<pre>
+Navigateur Web (Leaflet)
+        |
+        | fetch()
+        v
+Proxy HTTP Java
+        |
+        | RMI
+        v
+Service RMI Restaurant
+        |
+        | JDBC
+        v
+Base Oracle
+</pre>
+
+<h2>Fonctionnalites</h2>
+<ul>
+    <li>Affichage des restaurants sur une carte Leaflet.</li>
+    <li>Affichage des stations velo.</li>
+    <li>Affichage des incidents/travaux.</li>
+    <li>Reservation d'une table dans un restaurant.</li>
+    <li>Utilisation d'une transaction SQL avec commit et rollback.</li>
+</ul>
+
+<h2>Technologies</h2>
+<ul>
+    <li>Java RMI</li>
+    <li>JDBC Oracle</li>
+    <li>HttpServer Java</li>
+    <li>HTML / CSS / JavaScript</li>
+    <li>Leaflet</li>
+    <li>Ant</li>
+</ul>
+
+<h2>Lancement</h2>
+<pre>
+cp db.properties.example db.properties
+# modifier le login et le mot de passe Oracle
+ant compile
+./scripts/start-rmi.sh
+./scripts/start-proxy.sh
+cd site
+python3 -m http.server 8082
+</pre>
+</body>
+</html>
