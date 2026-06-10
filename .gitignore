@@ -1,7 +1,3 @@
-# Java / Ant
-build/
-out/
-*.class
 
 # Configuration locale sensible
 db.properties

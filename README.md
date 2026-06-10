@@ -95,3 +95,8 @@ Quand un utilisateur réserve depuis la carte :
 7. `COMMIT` valide l'opération.
 
 En cas d'erreur, le serveur fait un `ROLLBACK`.
+
+## WEBETU
+
+Pour webetu modifier le /js/config.js et mettre l'ip de la machine qui lance le proxy.
+
