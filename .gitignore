@@ -6,10 +6,6 @@ out/
 # Configuration locale sensible
 db.properties
 
-# Driver Oracle local, ne pas publier
-lib/ojdbc.jar
-lib/ojdbc*.jar
-
 # IDE
 .idea/
 .vscode/
