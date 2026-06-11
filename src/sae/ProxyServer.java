@@ -8,11 +8,13 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
-import java.net.URL;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Properties;
@@ -56,12 +58,18 @@ public class ProxyServer {
     }
 
     private void health(HttpExchange e) throws java.io.IOException {
-        if (cors(e)) return;
+        if (cors(e)) {
+            return;
+        }
+
         envoyer(e, 200, "{\"success\":true,\"message\":\"Proxy OK\"}");
     }
 
     private void restaurants(HttpExchange e) throws java.io.IOException {
-        if (cors(e)) return;
+        if (cors(e)) {
+            return;
+        }
+
         try {
             envoyer(e, 200, service.getRestaurants());
         } catch (Exception ex) {
@@ -70,7 +78,10 @@ public class ProxyServer {
     }
 
     private void tables(HttpExchange e) throws java.io.IOException {
-        if (cors(e)) return;
+        if (cors(e)) {
+            return;
+        }
+
         try {
             envoyer(e, 200, service.getTables());
         } catch (Exception ex) {
@@ -79,7 +90,9 @@ public class ProxyServer {
     }
 
     private void reservations(HttpExchange e) throws java.io.IOException {
-        if (cors(e)) return;
+        if (cors(e)) {
+            return;
+        }
 
         try {
             if ("GET".equals(e.getRequestMethod())) {
@@ -98,7 +111,15 @@ public class ProxyServer {
                 int nbConvives = obj.getInt("nbConvives");
                 String telephone = obj.getString("telephone");
 
-                String resultat = service.reserver(restaurantId, numTable, nom, prenom, nbConvives, telephone);
+                String resultat = service.reserver(
+                        restaurantId,
+                        numTable,
+                        nom,
+                        prenom,
+                        nbConvives,
+                        telephone
+                );
+
                 envoyer(e, 200, resultat);
                 return;
             }
@@ -110,31 +131,23 @@ public class ProxyServer {
     }
 
     private void velos(HttpExchange e) throws java.io.IOException {
-        if (cors(e)) return;
+        if (cors(e)) {
+            return;
+        }
+
         envoyer(e, 200, chargerVelos());
     }
 
     private void incidents(HttpExchange e) throws java.io.IOException {
-        if (cors(e)) return;
+        if (cors(e)) {
+            return;
+        }
+
         envoyer(e, 200, chargerIncidents());
     }
 
     private String lireCorps(HttpExchange e) throws java.io.IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(e.getRequestBody(), "UTF-8"));
-        String ligne;
-        String texte = "";
-
-        while ((ligne = br.readLine()) != null) {
-            texte += ligne;
-        }
-
-        return texte;
-    }
-
-    private String lireURL(String adresse) throws Exception {
-        URL url = new URL(adresse);
-        InputStream input = url.openStream();
-        BufferedReader br = new BufferedReader(new InputStreamReader(input, "UTF-8"));
 
         String ligne;
         String texte = "";
@@ -147,10 +160,45 @@ public class ProxyServer {
         return texte;
     }
 
+    private String lireURL(String adresse) throws Exception {
+        HttpClient client = HttpClient.newHttpClient();
+
+        HttpRequest requete = HttpRequest.newBuilder()
+                .uri(URI.create(adresse))
+                .GET()
+                .build();
+
+        HttpResponse<String> reponse = client.send(
+                requete,
+                HttpResponse.BodyHandlers.ofString()
+        );
+
+        int code = reponse.statusCode();
+
+        if (code != 200) {
+            throw new Exception("Erreur HTTP " + code + " pour l'adresse : " + adresse);
+        }
+
+        String contenu = reponse.body();
+
+        if (contenu == null || contenu.length() == 0) {
+            throw new Exception("Reponse vide pour l'adresse : " + adresse);
+        }
+
+        return contenu;
+    }
+
     private String chargerVelos() {
         try {
-            JSONObject info = new JSONObject(lireURL(velosInfoUrl));
-            JSONObject status = new JSONObject(lireURL(velosStatusUrl));
+            String texteInfo = lireURL(velosInfoUrl);
+            String texteStatus = lireURL(velosStatusUrl);
+
+            JSONObject info = new JSONObject(texteInfo);
+            JSONObject status = new JSONObject(texteStatus);
+
+            if (!info.has("data") || !status.has("data")) {
+                throw new Exception("Format JSON velo incorrect");
+            }
 
             JSONArray stationsInfo = info.getJSONObject("data").getJSONArray("stations");
             JSONArray stationsStatus = status.getJSONObject("data").getJSONArray("stations");
@@ -166,12 +214,14 @@ public class ProxyServer {
 
                     if (stationId.equals(etat.getString("station_id"))) {
                         JSONObject simple = new JSONObject();
+
                         simple.put("name", station.optString("name"));
                         simple.put("adresse", station.optString("address"));
                         simple.put("lat", station.getDouble("lat"));
                         simple.put("lon", station.getDouble("lon"));
                         simple.put("numBikesAvailable", etat.optInt("num_bikes_available"));
                         simple.put("numDocksAvailable", etat.optInt("num_docks_available"));
+
                         resultat.put(simple);
                     }
                 }
@@ -186,7 +236,13 @@ public class ProxyServer {
 
     private String chargerIncidents() {
         try {
-            JSONObject json = new JSONObject(lireURL(incidentsUrl));
+            String texte = lireURL(incidentsUrl);
+            JSONObject json = new JSONObject(texte);
+
+            if (!json.has("incidents")) {
+                throw new Exception("Format JSON incidents incorrect");
+            }
+
             JSONArray incidents = json.getJSONArray("incidents");
             JSONArray resultat = new JSONArray();
 
@@ -198,6 +254,7 @@ public class ProxyServer {
                 String[] coord = polyline.split(" ");
 
                 JSONObject simple = new JSONObject();
+
                 simple.put("adresse", lieu.optString("location_description"));
                 simple.put("cause", incident.optString("short_description"));
                 simple.put("description", incident.optString("description"));
@@ -218,6 +275,7 @@ public class ProxyServer {
 
     private boolean cors(HttpExchange e) throws java.io.IOException {
         Headers h = e.getResponseHeaders();
+
         h.set("Access-Control-Allow-Origin", "*");
         h.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
         h.set("Access-Control-Allow-Headers", "Content-Type");
@@ -232,7 +290,9 @@ public class ProxyServer {
 
     private void envoyer(HttpExchange e, int code, String json) throws java.io.IOException {
         cors(e);
+
         byte[] bytes = json.getBytes("UTF-8");
+
         e.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
         e.sendResponseHeaders(code, bytes.length);
 
@@ -245,12 +305,18 @@ public class ProxyServer {
         if (texte == null) {
             return "";
         }
-        return texte.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", " ").replace("\r", " ");
+
+        return texte
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", " ")
+                .replace("\r", " ");
     }
 
     public static void main(String[] args) {
         try {
             int port = 8000;
+
             if (args.length >= 1) {
                 port = Integer.parseInt(args[0]);
             }
