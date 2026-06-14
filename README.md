@@ -6,7 +6,6 @@ Projet Java/Web très simple pour la SAÉ :
 - proxy HTTP Java dans `ProxyServer.java` ;
 - service RMI Java dans `ServeurRestaurant.java` ;
 - accès Oracle avec JDBC ;
-- aucune couche DAO dans cette version.
 
 ## Structure simple
 
