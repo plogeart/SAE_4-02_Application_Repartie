@@ -2,60 +2,403 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Compte rendu</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 30px; }
-        pre { background: #eee; padding: 10px; }
-    </style>
+    <title>Compte rendu — SAÉ Application répartie</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/compte-rendu.css">
 </head>
 <body>
-<h1>Compte rendu - SAE Application Repartie</h1>
 
-<h2>Architecture</h2>
-<pre>
-Navigateur Web (Leaflet)
-        |
-        | fetch()
-        v
-Proxy HTTP Java
-        |
-        | RMI
-        v
-Service RMI Restaurant
-        |
-        | JDBC
-        v
-Base Oracle
-</pre>
+<header>
+    <h1>Compte rendu — SAÉ Application répartie</h1>
+    <nav>
+        <a href="index.html">Carte</a>
+        <a href="compte-rendu.html">Compte rendu</a>
+    </nav>
+</header>
 
-<h2>Fonctionnalites</h2>
-<ul>
-    <li>Affichage des restaurants sur une carte Leaflet.</li>
-    <li>Affichage des stations velo.</li>
-    <li>Affichage des incidents/travaux.</li>
-    <li>Reservation d'une table dans un restaurant.</li>
-    <li>Utilisation d'une transaction SQL avec commit et rollback.</li>
-</ul>
+<main>
+    <section class="panel">
+        <h2>1. Présentation du projet</h2>
+        <p>
+            Le projet consiste à réaliser une application répartie autour de la ville de Nancy.
+            Le site web, hébergé sur <strong>webetu</strong>, affiche une carte Leaflet centrée sur Nancy avec plusieurs types de données :
+            les restaurants issus d'une base Oracle, les stations VélOstan'lib et les incidents ou travaux de circulation du Grand Nancy.
+        </p>
+        <p>
+            L'application est composée d'un client web, d'un proxy HTTP Java, d'un service RMI Java et d'une base de données Oracle.
+            Le proxy sert de passerelle entre le navigateur, les données ouvertes et le service RMI.
+        </p>
 
-<h2>Technologies</h2>
-<ul>
-    <li>Java RMI</li>
-    <li>JDBC Oracle</li>
-    <li>HttpServer Java</li>
-    <li>HTML / CSS / JavaScript</li>
-    <li>Leaflet</li>
-    <li>Ant</li>
-</ul>
+        <p>
+            <strong>Dépôt Git :</strong>
+            <a href="https://github.com/plogeart/SAE_4-02_Application_Repartie" target="_blank" rel="noopener">
+                https://github.com/plogeart/SAE_4-02_Application_Repartie
+            </a>
+        </p>
+    </section>
 
-<h2>Lancement</h2>
-<pre>
-cp db.properties.example db.properties
-# modifier le login et le mot de passe Oracle
-ant compile
-./scripts/start-rmi.sh
-./scripts/start-proxy.sh
-cd site
-python3 -m http.server 8082
-</pre>
+    <section class="panel">
+        <h2>2. Architecture générale</h2>
+        <p>
+            Le navigateur ne contacte pas directement tous les services externes. Il interroge le proxy HTTP Java,
+            qui récupère les données ouvertes, appelle le service RMI et renvoie des réponses JSON exploitables par le site.
+        </p>
+
+        <div class="architecture">
+            <div class="box">
+                <strong>Client web</strong>
+                <span class="tag">HTML</span>
+                <span class="tag">CSS</span>
+                <span class="tag">JavaScript</span>
+                <span class="tag">Leaflet</span>
+                <p>
+                    Affiche la carte, les marqueurs, les tables et les réservations.
+                    Envoie les requêtes HTTP vers le proxy.
+                </p>
+            </div>
+
+            <div class="box">
+                <strong>Proxy HTTP Java</strong>
+                <span class="tag">HttpServer</span>
+                <span class="tag">HttpClient</span>
+                <span class="tag">JSON</span>
+                <p>
+                    Expose les routes <code>/api/...</code>, interroge les API externes,
+                    appelle le service RMI et ajoute les en-têtes CORS nécessaires au navigateur.
+                </p>
+            </div>
+
+            <div class="box">
+                <strong>Service RMI restaurants</strong>
+                <span class="tag">Java RMI</span>
+                <span class="tag">DAO</span>
+                <span class="tag">JDBC</span>
+                <p>
+                    Fournit les restaurants, les tables et les réservations au format JSON.
+                    Il gère aussi la réservation d'une table.
+                </p>
+            </div>
+
+            <div class="box">
+                <strong>Base de données</strong>
+                <span class="tag">Oracle</span>
+                <span class="tag">SQL</span>
+                <p>
+                    Stocke les restaurants, les tables et les réservations.
+                    Les scripts SQL permettent de créer le schéma et les données de démonstration.
+                </p>
+            </div>
+        </div>
+
+        <div class="arrow">Navigateur → HTTP/JSON → Proxy Java → RMI/JSON → Service restaurants → JDBC → Oracle</div>
+        <div class="arrow">Proxy Java → HTTP/JSON → Données ouvertes VélOstan'lib et incidents Grand Nancy</div>
+
+        <h3>Schéma textuel des échanges</h3>
+        <pre>Navigateur web
+  |-- GET /api/restaurants ----------------------|
+  |-- GET /api/tables ---------------------------|-- Proxy HTTP Java
+  |-- POST /api/reservations --------------------|       |
+  |-- GET /api/velos ----------------------------|       |-- RMI vers ServiceRestaurant
+  |-- GET /api/incidents ------------------------|       |-- HttpClient vers API externes
+                                                          |
+ServiceRestaurantImpl -- JDBC -- Base Oracle</pre>
+    </section>
+
+    <section class="panel">
+        <h2>3. Technologies utilisées</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Élément</th>
+                    <th>Technologie</th>
+                    <th>Rôle dans le projet</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Site web</td>
+                    <td>HTML, CSS, JavaScript</td>
+                    <td>Interface utilisateur, carte, tableaux et formulaire de réservation.</td>
+                </tr>
+                <tr>
+                    <td>Carte</td>
+                    <td>Leaflet</td>
+                    <td>Affichage de Nancy et des marqueurs restaurants, vélos et incidents.</td>
+                </tr>
+                <tr>
+                    <td>Proxy</td>
+                    <td>Java, <code>HttpServer</code>, <code>HttpClient</code></td>
+                    <td>Passerelle entre le navigateur, les API externes et le service RMI.</td>
+                </tr>
+                <tr>
+                    <td>Service réparti</td>
+                    <td>Java RMI</td>
+                    <td>Service distant pour accéder aux restaurants et gérer les réservations.</td>
+                </tr>
+                <tr>
+                    <td>Base de données</td>
+                    <td>Oracle, JDBC</td>
+                    <td>Stockage des restaurants, tables et réservations.</td>
+                </tr>
+                <tr>
+                    <td>Format d'échange</td>
+                    <td>JSON</td>
+                    <td>Format commun entre le site, le proxy et le service RMI.</td>
+                </tr>
+                <tr>
+                    <td>Compilation</td>
+                    <td>Ant</td>
+                    <td>Compilation automatique du code Java et génération possible de la Javadoc.</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="panel">
+        <h2>4. Fonctionnalités réalisées</h2>
+        <ul>
+            <li><span class="ok">Réalisé :</span> carte Leaflet centrée sur Nancy.</li>
+            <li><span class="ok">Réalisé :</span> affichage des restaurants stockés dans la base Oracle.</li>
+            <li><span class="ok">Réalisé :</span> affichage des stations VélOstan'lib avec adresse, vélos disponibles et places libres.</li>
+            <li><span class="ok">Réalisé :</span> affichage des incidents/travaux du Grand Nancy avec cause, adresse et dates.</li>
+            <li><span class="ok">Réalisé :</span> service RMI pour récupérer les restaurants, les tables et les réservations.</li>
+            <li><span class="ok">Réalisé :</span> réservation d'une table depuis un marqueur de restaurant.</li>
+            <li><span class="ok">Réalisé :</span> proxy HTTP Java entre le site web, les API externes et le service RMI.</li>
+            <li><span class="ok">Réalisé :</span> scripts de lancement pour le serveur RMI et le proxy.</li>
+            <li><span class="ok">Réalisé :</span> configuration séparée dans <code>db.properties</code>, <code>proxy.properties</code> et <code>site/js/config.js</code>.</li>
+        </ul>
+    </section>
+
+    <section class="panel">
+        <h2>5. Organisation du code</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Dossier / fichier</th>
+                    <th>Contenu</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>site/</code></td>
+                    <td>Site web avec la page carte, la page compte rendu et le JavaScript client.</td>
+                </tr>
+                <tr>
+                    <td><code>src/com/example/api/</code></td>
+                    <td>Interface RMI publique <code>ServiceRestaurant</code>.</td>
+                </tr>
+                <tr>
+                    <td><code>src/com/example/server/</code></td>
+                    <td>Serveur RMI et implémentation du service restaurants.</td>
+                </tr>
+                <tr>
+                    <td><code>src/com/example/server/dao/</code></td>
+                    <td>Classes DAO pour isoler les requêtes SQL.</td>
+                </tr>
+                <tr>
+                    <td><code>src/com/example/server/model/</code></td>
+                    <td>Classes métier comme <code>Restaurant</code> et <code>Reservation</code>.</td>
+                </tr>
+                <tr>
+                    <td><code>src/com/example/proxy/</code></td>
+                    <td>Proxy HTTP Java exposant les routes <code>/api</code>.</td>
+                </tr>
+                <tr>
+                    <td><code>sql/</code></td>
+                    <td>Scripts de création de la base et données de démonstration.</td>
+                </tr>
+                <tr>
+                    <td><code>scripts/</code></td>
+                    <td>Scripts shell pour démarrer les services.</td>
+                </tr>
+                <tr>
+                    <td><code>build.xml</code></td>
+                    <td>Compilation automatique avec Ant.</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="panel">
+        <h2>6. Routes exposées par le proxy</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Route</th>
+                    <th>Méthode</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>/api/health</code></td>
+                    <td>GET</td>
+                    <td>Vérifie que le proxy répond correctement.</td>
+                </tr>
+                <tr>
+                    <td><code>/api/restaurants</code></td>
+                    <td>GET</td>
+                    <td>Récupère les restaurants via le service RMI.</td>
+                </tr>
+                <tr>
+                    <td><code>/api/tables</code></td>
+                    <td>GET</td>
+                    <td>Récupère les tables et leur statut.</td>
+                </tr>
+                <tr>
+                    <td><code>/api/reservations</code></td>
+                    <td>GET / POST</td>
+                    <td>Liste les réservations ou crée une nouvelle réservation.</td>
+                </tr>
+                <tr>
+                    <td><code>/api/velos</code></td>
+                    <td>GET</td>
+                    <td>Récupère les stations VélOstan'lib à partir des données ouvertes.</td>
+                </tr>
+                <tr>
+                    <td><code>/api/incidents</code></td>
+                    <td>GET</td>
+                    <td>Récupère les incidents de circulation du Grand Nancy.</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <section class="panel">
+        <h2>7. Base de données</h2>
+        <p>
+            La base Oracle contient trois tables principales :
+        </p>
+        <ul>
+            <li><code>RESTAURANT</code> : nom, adresse, latitude et longitude des restaurants.</li>
+            <li><code>TABLE_RESTO</code> : numéro de table, restaurant associé, nombre de places et statut.</li>
+            <li><code>RESERVATION</code> : informations du client, restaurant, table, nombre de convives et téléphone.</li>
+        </ul>
+        <p>
+            Lors d'une réservation, le service vérifie que le restaurant existe, que la table est libre,
+            et que le nombre de convives ne dépasse pas le nombre de places disponibles. La table passe ensuite au statut
+            <code>Reservee</code>.
+        </p>
+    </section>
+
+    <section class="panel">
+        <h2>8. Déploiement et exécution</h2>
+
+        <h3>1. Configurer la base Oracle</h3>
+        <p>
+            Modifier <code>db.properties</code> avec les identifiants Oracle personnels :
+        </p>
+        <pre>db.driver=oracle.jdbc.OracleDriver
+db.url=jdbc:oracle:thin:@charlemagne.iutnc.univ-lorraine.fr:1521:infodb
+db.user=LOGIN
+db.password=MDP</pre>
+
+        <h3>2. Initialiser les tables</h3>
+        <pre>sql/schema.sql
+sql/demo-data.sql</pre>
+
+        <h3>3. Compiler le projet</h3>
+        <pre>ant clean compile</pre>
+
+        <h3>4. Lancer le service RMI</h3>
+        <pre>./scripts/start-rmi.sh</pre>
+
+        <h3>5. Lancer le proxy HTTP</h3>
+        <pre>./scripts/start-proxy.sh</pre>
+
+        <h3>6. Configurer le site web</h3>
+        <p>
+            Dans <code>site/js/config.js</code>, adapter l'URL du proxy si les services sont lancés sur une autre machine :
+        </p>
+        <pre>window.APP_CONFIG = {
+    API_BASE_URL: "http://localhost:8000"
+};</pre>
+        <p>
+            Pour la démonstration, il faut remplacer <code>localhost</code> par le nom ou l'adresse de la machine qui exécute le proxy.
+            Les adresses ne sont donc pas codées directement dans le JavaScript principal.
+        </p>
+    </section>
+
+    <section class="panel">
+        <h2>9. Tests possibles pendant la démonstration</h2>
+        <p>
+            Les routes suivantes permettent de vérifier rapidement que les services répondent :
+        </p>
+        <pre>curl http://localhost:8000/api/health
+curl http://localhost:8000/api/restaurants
+curl http://localhost:8000/api/tables
+curl http://localhost:8000/api/velos
+curl http://localhost:8000/api/incidents
+curl http://localhost:8000/api/reservations</pre>
+        <p>
+            Côté navigateur, la console de développement permet aussi de vérifier les erreurs réseau, les erreurs CORS
+            ou les réponses JSON incorrectes.
+        </p>
+    </section>
+
+    <section class="panel">
+        <h2>10. Gestion des problèmes réseau</h2>
+        <ul>
+            <li>Le proxy vérifie les codes de réponse HTTP des API externes.</li>
+            <li>Les erreurs sont renvoyées au format JSON avec <code>success: false</code> et un message explicite.</li>
+            <li>Le site affiche des messages d'erreur lorsqu'une ressource ne peut pas être chargée.</li>
+            <li>Les données vélos et incidents sont mises en cache temporairement côté proxy pour limiter les appels externes.</li>
+            <li>Les fichiers de configuration permettent d'adapter les hôtes, ports et URLs sans modifier le code principal.</li>
+        </ul>
+    </section>
+
+    <section class="panel">
+        <h2>11. Sécurité et contournement CORS</h2>
+        <p>
+            Certaines données ne peuvent pas être récupérées directement depuis le navigateur à cause de la politique de sécurité CORS.
+            Le proxy permet de contourner ce blocage dans le cadre de la SAÉ, car c'est le serveur Java qui interroge les données externes,
+            puis qui renvoie une réponse au navigateur.
+        </p>
+        <p>
+            Ce contournement doit rester contrôlé. Dans un vrai projet, il faudrait vérifier les sources appelées,
+            limiter les routes exposées, éviter de créer un proxy ouvert vers n'importe quelle URL,
+            contrôler les entrées utilisateur et configurer précisément les origines autorisées au lieu d'utiliser
+            systématiquement <code>Access-Control-Allow-Origin: *</code>.
+        </p>
+    </section>
+
+    <section class="panel">
+        <h2>12. Points importants pour la soutenance</h2>
+        <ul>
+            <li>Le site web doit être hébergé sur webetu.</li>
+            <li>Le serveur RMI et le proxy doivent être lancés sur des machines de la salle.</li>
+            <li>Le service RMI doit être lancé avant le proxy, car le proxy recherche le service RMI au démarrage.</li>
+            <li>Le fichier <code>site/js/config.js</code> doit pointer vers la machine qui lance le proxy.</li>
+            <li>La base Oracle doit être initialisée avant la démonstration.</li>
+            <li>Chaque membre de l'équipe doit pouvoir expliquer une partie : site web, proxy, RMI, base de données ou déploiement.</li>
+        </ul>
+    </section>
+
+    <section class="panel">
+        <h2>13. Limites et améliorations possibles</h2>
+        <ul>
+            <li><span class="warning">Amélioration possible :</span> ajouter une vraie interface de formulaire au lieu des fenêtres <code>prompt</code>.</li>
+            <li><span class="warning">Amélioration possible :</span> améliorer la gestion fine des erreurs affichées à l'utilisateur.</li>
+            <li><span class="warning">Amélioration possible :</span> sécuriser davantage les en-têtes CORS en limitant l'origine autorisée.</li>
+            <li><span class="warning">Amélioration possible :</span> ajouter plus de tests automatiques sur les DAO, le service RMI et le proxy.</li>
+            <li><span class="warning">Amélioration possible :</span> enrichir la Javadoc de toutes les méthodes publiques.</li>
+        </ul>
+    </section>
+
+    <section class="panel">
+        <h2>14. Résumé</h2>
+        <p>
+            Le projet répond au principe d'une application répartie : le navigateur affiche les informations,
+            le proxy centralise les appels réseau, le service RMI fournit l'accès métier aux restaurants,
+            et la base Oracle stocke les données persistantes.
+            Les échanges entre les composants se font principalement en JSON, ce qui simplifie l'intégration entre le JavaScript du site,
+            le proxy Java et le service RMI.
+        </p>
+        <p class="small">
+            Page réalisée pour l'onglet « compte rendu » demandé dans le sujet de SAÉ Application répartie.
+        </p>
+    </section>
+</main>
+
 </body>
 </html>
