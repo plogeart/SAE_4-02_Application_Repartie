@@ -11,10 +11,10 @@ Projet Java/Web très simple pour la SAÉ :
 ## Structure simple
 
 ```text
-src/com/example/api/ServiceRestaurant.java      Interface RMI
-src/com/example/server/ServeurRestaurant.java   Serveur RMI + requêtes JDBC
-src/com/example/proxy/ProxyServer.java          Proxy HTTP + données ouvertes
-src/com/example/client/ClientRestaurant.java    Client de test RMI
+src/sae/ServiceRestaurant.java      Interface RMI
+src/sae/ServeurRestaurant.java   Serveur RMI + requêtes JDBC
+src/sae/ProxyServer.java         Proxy HTTP + données ouvertes
+src/sae/ClientTest.java    Client de test RMI
 site/                                           Site web Leaflet
 sql/schema.sql                                  Création des tables Oracle
 sql/demo-data.sql                               Données de démonstration
