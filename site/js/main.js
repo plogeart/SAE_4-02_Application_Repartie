@@ -194,6 +194,7 @@ function reserver(restaurantId) {
 
 function loadVelos() {
     getJson('/api/velos').then(function(stations) {
+        // vider les stations de velos
         veloLayer.clearLayers();
 
         stations.forEach(function(s) {

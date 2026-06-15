@@ -187,8 +187,9 @@ public class ServeurRestaurant extends UnicastRemoteObject implements ServiceRes
         }
     }
 
+    //Transaction pour reserver une table : on verifie que la table est libre et qu elle a assez de places, puis on enregistre la reservation et on marque la table comme reservee
     public String reserver(int restaurantId, int numTable, String nom, String prenom,
-                           int nbConvives, String telephone) throws RemoteException {
+        int nbConvives, String telephone) throws RemoteException {
         Connection cnx = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
