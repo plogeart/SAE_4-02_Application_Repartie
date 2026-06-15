@@ -19,6 +19,8 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Properties;
 
+import javax.lang.model.util.Elements.Origin;
+
 public class ProxyServer {
 
     private ServiceRestaurant service;
@@ -46,6 +48,7 @@ public class ProxyServer {
     public void start(int port) throws Exception {
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
+        // lier l'URL à la méthode
         server.createContext("/api/health", this::health);
         server.createContext("/api/restaurants", this::restaurants);
         server.createContext("/api/tables", this::tables);
@@ -56,6 +59,8 @@ public class ProxyServer {
         server.start();
         System.out.println("Proxy lance sur http://localhost:" + port);
     }
+
+    //Cross-Origin Resource Sharing
 
     private void health(HttpExchange e) throws java.io.IOException {
         if (cors(e)) {
@@ -234,6 +239,7 @@ public class ProxyServer {
         }
     }
 
+    // charger les incidents de la route et les formater en JSON simple
     private String chargerIncidents() {
         try {
             String texte = lireURL(incidentsUrl);
@@ -276,6 +282,7 @@ public class ProxyServer {
     private boolean cors(HttpExchange e) throws java.io.IOException {
         Headers h = e.getResponseHeaders();
 
+        // autoriser toutes les origines (pour dev local)
         h.set("Access-Control-Allow-Origin", "*");
         h.set("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
         h.set("Access-Control-Allow-Headers", "Content-Type");
@@ -288,12 +295,15 @@ public class ProxyServer {
         return false;
     }
 
+    // envoyer une reponse HTTP avec un code et un corps JSON
     private void envoyer(HttpExchange e, int code, String json) throws java.io.IOException {
         cors(e);
 
         byte[] bytes = json.getBytes("UTF-8");
 
+        // definir le type de contenu comme JSON
         e.getResponseHeaders().set("Content-Type", "application/json; charset=UTF-8");
+        // envoyer le code HTTP et la longueur du corps
         e.sendResponseHeaders(code, bytes.length);
 
         OutputStream os = e.getResponseBody();
