@@ -28,8 +28,8 @@ Le fichier `db.properties` doit contenir vos identifiants Oracle :
 ```properties
 db.driver=oracle.jdbc.OracleDriver
 db.url=jdbc:oracle:thin:@charlemagne.iutnc.univ-lorraine.fr:1521:infodb
-db.user=VOTRE_LOGIN
-db.password=VOTRE_MOT_DE_PASSE
+db.user=LOGIN
+db.password=MOT_DE_PASSE
 ```
 
 Le driver Oracle `ojdbc.jar` doit être présent dans `lib/`.
