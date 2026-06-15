@@ -11,6 +11,10 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Properties;
+
+/**
+ * Classe représentant le serveur RMI pour le service de gestion des restaurants.
+ */
 public class ServeurRestaurant extends UnicastRemoteObject implements ServiceRestaurant {
 
     private String dbDriver;
@@ -18,11 +22,18 @@ public class ServeurRestaurant extends UnicastRemoteObject implements ServiceRes
     private String dbUser;
     private String dbPassword;
 
+    /**
+     * Constructeur de la classe ServeurRestaurant.
+     * @throws RemoteException
+     */
     public ServeurRestaurant() throws RemoteException {
         super();
         chargerConfigurationBase();
     }
 
+    /**
+     * Charge la configuration de la base de données à partir du fichier db.properties.
+     */
     private void chargerConfigurationBase() {
         try {
             Properties props = new Properties();
@@ -39,10 +50,20 @@ public class ServeurRestaurant extends UnicastRemoteObject implements ServiceRes
         }
     }
 
+    /**
+     * Établit une connexion à la base de données.
+     * @return une instance de Connection représentant la connexion à la base de données.
+     * @throws Exception
+     */
     private Connection getConnexion() throws Exception {
         return DriverManager.getConnection(dbUrl, dbUser, dbPassword);
     }
 
+    /**
+     * Échappe les caractères spéciaux dans une chaîne de caractères pour la rendre compatible avec le format JSON.
+     * @param texte la chaîne de caractères à échapper.
+     * @return la chaîne de caractères échappée.
+     */
     private String json(String texte) {
         if (texte == null) {
             return "";
@@ -53,6 +74,11 @@ public class ServeurRestaurant extends UnicastRemoteObject implements ServiceRes
                 .replace("\r", " ");
     }
 
+    /**
+     * Récupère la liste des restaurants disponibles.
+     * @return une chaîne de caractères représentant la liste des restaurants.
+     * @throws RemoteException
+     */
     public String getRestaurants() throws RemoteException {
         Connection cnx = null;
         Statement st = null;
@@ -93,6 +119,11 @@ public class ServeurRestaurant extends UnicastRemoteObject implements ServiceRes
         }
     }
 
+    /**
+     * Récupère la liste des tables disponibles.
+     * @return une chaîne de caractères représentant la liste des tables.
+     * @throws RemoteException
+     */
     public String getTables() throws RemoteException {
         Connection cnx = null;
         Statement st = null;
@@ -138,6 +169,11 @@ public class ServeurRestaurant extends UnicastRemoteObject implements ServiceRes
         }
     }
 
+    /**
+     * Récupère la liste des réservations effectuées.
+     * @return une chaîne de caractères représentant la liste des réservations.
+     * @throws RemoteException
+     */
     public String getReservations() throws RemoteException {
         Connection cnx = null;
         Statement st = null;
@@ -187,7 +223,17 @@ public class ServeurRestaurant extends UnicastRemoteObject implements ServiceRes
         }
     }
 
-    //Transaction pour reserver une table : on verifie que la table est libre et qu elle a assez de places, puis on enregistre la reservation et on marque la table comme reservee
+    /**
+     * Transaction pour reserver une table : on verifie que la table est libre et qu elle a assez de places, puis on enregistre la reservation et on marque la table comme reservee
+     * @param restaurantId l'identifiant du restaurant.
+     * @param numTable le numéro de la table à réserver.
+     * @param nom le nom du client.
+     * @param prenom le prénom du client.
+     * @param nbConvives le nombre de convives.
+     * @param telephone le numéro de téléphone du client.
+     * @return une chaîne de caractères indiquant le succès ou l'échec de la réservation.
+     * @throws RemoteException
+     */
     public String reserver(int restaurantId, int numTable, String nom, String prenom,
         int nbConvives, String telephone) throws RemoteException {
         Connection cnx = null;
@@ -275,6 +321,10 @@ public class ServeurRestaurant extends UnicastRemoteObject implements ServiceRes
         }
     }
 
+    /**
+     * Methode Main pour lancer le serveur RMI.
+     * @param args les arguments de la ligne de commande (port et nom du service).
+     */
     public static void main(String[] args) {
         try {
             String host = "localhost";

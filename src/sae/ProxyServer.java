@@ -19,8 +19,9 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.Properties;
 
-import javax.lang.model.util.Elements.Origin;
-
+/**
+ * Classe représentant le serveur proxy qui relaie les requêtes HTTP vers le service RMI.
+ */
 public class ProxyServer {
 
     private ServiceRestaurant service;
@@ -29,6 +30,11 @@ public class ProxyServer {
     private String velosStatusUrl;
     private String incidentsUrl;
 
+    /**
+     * Constructeur de la classe ProxyServer.
+     * Charge la configuration à partir du fichier proxy.properties et établit la connexion RMI.
+     * @throws Exception
+     */
     public ProxyServer() throws Exception {
         Properties props = new Properties();
         props.load(new FileInputStream("proxy.properties"));
@@ -45,6 +51,11 @@ public class ProxyServer {
         service = (ServiceRestaurant) registry.lookup(rmiName);
     }
 
+    /**
+     * Démarre le serveur proxy sur le port spécifié.
+     * @param port le port sur lequel le serveur proxy sera démarré.
+     * @throws Exception
+     */
     public void start(int port) throws Exception {
         HttpServer server = HttpServer.create(new InetSocketAddress(port), 0);
 
@@ -62,6 +73,11 @@ public class ProxyServer {
 
     //Cross-Origin Resource Sharing
 
+    /**
+     * Gère la requête de santé du serveur proxy.
+     * @param e l'objet HttpExchange représentant la requête HTTP.
+     * @throws java.io.IOException
+     */
     private void health(HttpExchange e) throws java.io.IOException {
         if (cors(e)) {
             return;
@@ -70,6 +86,11 @@ public class ProxyServer {
         envoyer(e, 200, "{\"success\":true,\"message\":\"Proxy OK\"}");
     }
 
+    /**
+     * Gère la requête pour récupérer la liste des restaurants disponibles.
+     * @param e l'objet HttpExchange représentant la requête HTTP.
+     * @throws java.io.IOException
+     */
     private void restaurants(HttpExchange e) throws java.io.IOException {
         if (cors(e)) {
             return;
@@ -82,6 +103,11 @@ public class ProxyServer {
         }
     }
 
+    /**
+     * Gère la requête pour récupérer la liste des tables disponibles.
+     * @param e l'objet HttpExchange représentant la requête HTTP.
+     * @throws java.io.IOException
+     */
     private void tables(HttpExchange e) throws java.io.IOException {
         if (cors(e)) {
             return;
@@ -94,6 +120,11 @@ public class ProxyServer {
         }
     }
 
+    /**
+     * Gère la requête pour récupérer la liste des réservations effectuées ou pour effectuer une réservation.
+     * @param e l'objet HttpExchange représentant la requête HTTP.
+     * @throws java.io.IOException
+     */
     private void reservations(HttpExchange e) throws java.io.IOException {
         if (cors(e)) {
             return;
@@ -135,6 +166,11 @@ public class ProxyServer {
         }
     }
 
+    /**
+     * Gère la requête pour récupérer la liste des vélos disponibles.
+     * @param e l'objet HttpExchange représentant la requête HTTP.
+     * @throws java.io.IOException
+     */
     private void velos(HttpExchange e) throws java.io.IOException {
         if (cors(e)) {
             return;
@@ -143,6 +179,11 @@ public class ProxyServer {
         envoyer(e, 200, chargerVelos());
     }
 
+    /**
+     * Gère la requête pour récupérer la liste des incidents de la route.
+     * @param e l'objet HttpExchange représentant la requête HTTP.
+     * @throws java.io.IOException
+     */
     private void incidents(HttpExchange e) throws java.io.IOException {
         if (cors(e)) {
             return;
@@ -151,6 +192,12 @@ public class ProxyServer {
         envoyer(e, 200, chargerIncidents());
     }
 
+    /**
+     * Lit le corps de la requête HTTP et retourne son contenu sous forme de chaîne de caractères.
+     * @param e l'objet HttpExchange représentant la requête HTTP.
+     * @return le contenu du corps de la requête.
+     * @throws java.io.IOException
+     */
     private String lireCorps(HttpExchange e) throws java.io.IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(e.getRequestBody(), "UTF-8"));
 
@@ -165,6 +212,12 @@ public class ProxyServer {
         return texte;
     }
 
+    /**
+     * Lit le contenu d'une URL et retourne le résultat sous forme de chaîne de caractères.
+     * @param adresse l'adresse URL à lire.
+     * @return le contenu de l'URL sous forme de chaîne de caractères.
+     * @throws Exception
+     */
     private String lireURL(String adresse) throws Exception {
         HttpClient client = HttpClient.newHttpClient();
 
@@ -193,6 +246,10 @@ public class ProxyServer {
         return contenu;
     }
 
+    /**
+     * Charge les informations sur les vélos et les stations à partir des URLs configurées et les formate en JSON simple.
+     * @return une chaîne de caractères représentant les informations sur les vélos et les stations.
+     */
     private String chargerVelos() {
         try {
             String texteInfo = lireURL(velosInfoUrl);
@@ -239,7 +296,10 @@ public class ProxyServer {
         }
     }
 
-    // charger les incidents de la route et les formater en JSON simple
+    /**
+     * Charge les informations sur les incidents de la route à partir de l'URL configurée et les formate en JSON simple.
+     * @return une chaîne de caractères représentant les incidents de la route.
+     */
     private String chargerIncidents() {
         try {
             String texte = lireURL(incidentsUrl);
@@ -279,6 +339,12 @@ public class ProxyServer {
         }
     }
 
+    /**
+     * Gère les requêtes CORS (Cross-Origin Resource Sharing) pour permettre les requêtes depuis d'autres origines.
+     * @param e l'objet HttpExchange représentant la requête HTTP.
+     * @return true si la requête est une requête CORS pré-vol (OPTIONS), false sinon.
+     * @throws java.io.IOException
+     */
     private boolean cors(HttpExchange e) throws java.io.IOException {
         Headers h = e.getResponseHeaders();
 
@@ -295,7 +361,13 @@ public class ProxyServer {
         return false;
     }
 
-    // envoyer une reponse HTTP avec un code et un corps JSON
+    /**
+     * Envoie une réponse HTTP avec le code et le corps spécifiés.
+     * @param e l'objet HttpExchange représentant la requête HTTP.
+     * @param code le code de réponse HTTP.
+     * @param json le corps de la réponse au format JSON.
+     * @throws java.io.IOException
+     */
     private void envoyer(HttpExchange e, int code, String json) throws java.io.IOException {
         cors(e);
 
@@ -323,6 +395,10 @@ public class ProxyServer {
                 .replace("\r", " ");
     }
 
+    /**
+     * Methode Main pour lancer le serveur proxy.
+     * @param args les arguments de la ligne de commande (port).
+     */
     public static void main(String[] args) {
         try {
             int port = 8000;
