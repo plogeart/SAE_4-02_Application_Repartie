@@ -1,4 +1,4 @@
-# SAÉ Application Répartie — version simple
+# SAÉ Application Répartie
 
 Projet Java/Web très simple pour la SAÉ :
 
